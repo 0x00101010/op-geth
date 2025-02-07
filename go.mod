@@ -151,6 +151,6 @@ require (
 	rsc.io/tmplfunc v0.0.3 // indirect
 )
 
-replace github.com/syndtr/goleveldb => github.com/0x00101010/goleveldb v1.0.1
+replace github.com/syndtr/goleveldb => github.com/0x00101010/goleveldb v1.0.3
 
 //replace github.com/ethereum-optimism/superchain-registry/superchain => ../superchain-registry/superchain
