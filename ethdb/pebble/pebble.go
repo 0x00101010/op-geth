@@ -142,6 +142,22 @@ func (l panicLogger) Fatalf(format string, args ...interface{}) {
 	panic(fmt.Errorf("fatal: "+format, args...))
 }
 
+type wrappedLogger struct {
+	logger log.Logger
+}
+
+func (l *wrappedLogger) Infof(format string, args ...interface{}) {
+	l.logger.Info(fmt.Sprintf(format, args...))
+}
+
+func (l *wrappedLogger) Errorf(format string, args ...interface{}) {
+	l.logger.Error(fmt.Sprintf(format, args...))
+}
+
+func (l *wrappedLogger) Fatalf(format string, args ...interface{}) {
+	l.logger.Crit(fmt.Sprintf(format, args...))
+}
+
 // New returns a wrapped pebble DB object. The namespace is the prefix that the
 // metrics reporting should use for surfacing internal stats.
 func New(file string, cache int, handles int, namespace string, readonly bool) (*Database, error) {
@@ -227,7 +243,7 @@ func New(file string, cache int, handles int, namespace string, readonly bool) (
 			WriteStallBegin: db.onWriteStallBegin,
 			WriteStallEnd:   db.onWriteStallEnd,
 		},
-		Logger: pebble.DefaultLogger,
+		Logger: &wrappedLogger{logger: logger},
 	}
 	// Disable seek compaction explicitly. Check https://github.com/ethereum/go-ethereum/pull/20130
 	// for more details.
