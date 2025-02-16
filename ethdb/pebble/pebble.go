@@ -95,7 +95,7 @@ type Database struct {
 }
 
 func (d *Database) onCompactionBegin(info pebble.CompactionInfo) {
-	d.log.Info("Compaction begin")
+	d.log.Info("Compaction begin", "info", info)
 	if d.activeComp == 0 {
 		d.compStartTime = time.Now()
 	}
@@ -109,7 +109,7 @@ func (d *Database) onCompactionBegin(info pebble.CompactionInfo) {
 }
 
 func (d *Database) onCompactionEnd(info pebble.CompactionInfo) {
-	d.log.Info("Compaction end")
+	d.log.Info("Compaction end", "info", info, "compactionTime", time.Since(d.compStartTime))
 	if d.activeComp == 1 {
 		d.compTime.Add(int64(time.Since(d.compStartTime)))
 	} else if d.activeComp == 0 {
@@ -122,13 +122,13 @@ func (d *Database) onWriteStallBegin(b pebble.WriteStallBeginInfo) {
 	d.writeDelayStartTime = time.Now()
 	d.writeDelayCount.Add(1)
 	d.writeStalled.Store(true)
-	d.log.Info("Write stall begin")
+	d.log.Info("Write stall begin", "info", b, "delayedCount", d.writeDelayCount.Load())
 }
 
 func (d *Database) onWriteStallEnd() {
 	d.writeDelayTime.Add(int64(time.Since(d.writeDelayStartTime)))
 	d.writeStalled.Store(false)
-	d.log.Info("Write stall end")
+	d.log.Info("Write stall end", "duration", time.Since(d.writeDelayStartTime))
 }
 
 // panicLogger is just a noop logger to disable Pebble's internal logger.
