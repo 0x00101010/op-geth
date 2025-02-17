@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -259,11 +260,16 @@ func New(file string, cache int, handles int, namespace string, readonly bool) (
 		}
 	}
 
-	lessCPU := os.Getenv("LESS_CPU")
-	if lessCPU != "" {
-		logger.Info("Less CPU", "cpu", lessCPU)
-		opt.MaxConcurrentCompactions = func() int {
-			return runtime.NumCPU() / 2
+	concurrentCompactions := os.Getenv("COMPACTION_CPU_NUM")
+	if concurrentCompactions != "" {
+		num, err := strconv.Atoi(concurrentCompactions)
+		if err != nil {
+			logger.Error("Invalid compaction CPU number", "err", err)
+		} else {
+			logger.Info("Compaction CPU", "cpu", num)
+			opt.MaxConcurrentCompactions = func() int {
+				return num
+			}
 		}
 	}
 
