@@ -20,6 +20,7 @@ package pebble
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"runtime"
 	"sync"
 	"sync/atomic"
@@ -249,6 +250,21 @@ func New(file string, cache int, handles int, namespace string, readonly bool) (
 		},
 		Logger: &wrappedLogger{logger: logger},
 	}
+
+	flatLevel := os.Getenv("FLAT_LEVEL")
+	if flatLevel != "" {
+		opt.Levels = []pebble.LevelOptions{
+			{TargetFileSize: 2 * 1024 * 1024, FilterPolicy: bloom.FilterPolicy(10)},
+		}
+	}
+
+	lessCPU := os.Getenv("LESS_CPU")
+	if lessCPU != "" {
+		opt.MaxConcurrentCompactions = func() int {
+			return runtime.NumCPU() / 2
+		}
+	}
+
 	// Disable seek compaction explicitly. Check https://github.com/ethereum/go-ethereum/pull/20130
 	// for more details.
 	opt.Experimental.ReadSamplingMultiplier = -1
