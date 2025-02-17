@@ -253,6 +253,7 @@ func New(file string, cache int, handles int, namespace string, readonly bool) (
 
 	flatLevel := os.Getenv("FLAT_LEVEL")
 	if flatLevel != "" {
+		logger.Info("Flat level", "level", flatLevel)
 		opt.Levels = []pebble.LevelOptions{
 			{TargetFileSize: 2 * 1024 * 1024, FilterPolicy: bloom.FilterPolicy(10)},
 		}
@@ -260,6 +261,7 @@ func New(file string, cache int, handles int, namespace string, readonly bool) (
 
 	lessCPU := os.Getenv("LESS_CPU")
 	if lessCPU != "" {
+		logger.Info("Less CPU", "cpu", lessCPU)
 		opt.MaxConcurrentCompactions = func() int {
 			return runtime.NumCPU() / 2
 		}
