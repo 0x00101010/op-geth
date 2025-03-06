@@ -192,7 +192,8 @@ func New(file string, cache int, handles int, namespace string, readonly bool) (
 	// Two memory tables is configured which is identical to leveldb,
 	// including a frozen memory table and another live one.
 	memTableLimit := 2
-	memTableSize := cache * 1024 * 1024 / 2 / memTableLimit
+	// memTableSize := cache * 1024 * 1024 / 2 / memTableLimit
+	memTableSize := 512 * 1024 * 1024 // 512MB
 
 	// The memory table size is currently capped at maxMemTableSize-1 due to a
 	// known bug in the pebble where maxMemTableSize is not recognized as a
@@ -213,7 +214,8 @@ func New(file string, cache int, handles int, namespace string, readonly bool) (
 		// Pebble has a single combined cache area and the write
 		// buffers are taken from this too. Assign all available
 		// memory allowance for cache.
-		Cache:        pebble.NewCache(int64(cache * 1024 * 1024)),
+		// Cache:        pebble.NewCache(int64(cache * 1024 * 1024)),
+		Cache:        pebble.NewCache(int64(10 * 1024 * 1024 * 1024)), // 10GB
 		MaxOpenFiles: handles,
 
 		// The size of memory table(as well as the write buffer).
@@ -234,13 +236,13 @@ func New(file string, cache int, handles int, namespace string, readonly bool) (
 		// Per-level options. Options for at least one level must be specified. The
 		// options for the last level are used for all subsequent levels.
 		Levels: []pebble.LevelOptions{
+			{TargetFileSize: 2 * 1024 * 1024, FilterPolicy: bloom.FilterPolicy(10)},
+			{TargetFileSize: 4 * 1024 * 1024, FilterPolicy: bloom.FilterPolicy(10)},
 			{TargetFileSize: 8 * 1024 * 1024, FilterPolicy: bloom.FilterPolicy(10)},
 			{TargetFileSize: 16 * 1024 * 1024, FilterPolicy: bloom.FilterPolicy(10)},
 			{TargetFileSize: 32 * 1024 * 1024, FilterPolicy: bloom.FilterPolicy(10)},
 			{TargetFileSize: 64 * 1024 * 1024, FilterPolicy: bloom.FilterPolicy(10)},
 			{TargetFileSize: 128 * 1024 * 1024, FilterPolicy: bloom.FilterPolicy(10)},
-			{TargetFileSize: 256 * 1024 * 1024, FilterPolicy: bloom.FilterPolicy(10)},
-			{TargetFileSize: 512 * 1024 * 1024, FilterPolicy: bloom.FilterPolicy(10)},
 		},
 		ReadOnly: readonly,
 		EventListener: &pebble.EventListener{
